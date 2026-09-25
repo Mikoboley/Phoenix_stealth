@@ -1,0 +1,28 @@
+{
+  "name": "phoenix-stealth",
+  "version": "1.0.0",
+  "description": "Bot WhatsApp furtif basé sur Baileys - usage personnel",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "node --test",
+    "check:syntax": "node scripts_check.js"
+  },
+  "keywords": [
+    "whatsapp",
+    "bot",
+    "baileys",
+    "stealth"
+  ],
+  "author": "lkdsboss-create",
+  "license": "MIT",
+  "dependencies": {
+    "@whiskeysockets/baileys": "^7.0.0-rc14",
+    "express": "^4.19.2",
+    "jimp": "^1.6.1",
+    "pino": "^9.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
