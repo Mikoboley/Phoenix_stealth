@@ -48,7 +48,7 @@ module.exports = {
         if (downloadMode && /^-?\d+$/.test(rawArgs.at(-1) || '')) selectionIndex = Number(rawArgs.pop());
         const query = rawArgs.join(' ').trim().toLowerCase();
         const entries = Object.entries(botState.statusCache || {});
-        const unseenAuthors = entries.filter(([, statuses]) => statuses.some((status) => !status.seen));
+        const unseenAuthors = entries.filter(([, statuses]) => Array.isArray(statuses) && statuses.some((status) => !status.seen));
         let targetJid = null;
         let targetName = null;
         let statuses = null;
@@ -56,6 +56,7 @@ module.exports = {
         if (!query && downloadMode && selectionIndex !== null) {
             const available = [];
             for (const [jid, list] of entries) {
+                if (!Array.isArray(list)) continue;
                 const display = await resolveDisplayName(sock, jid, botState, list[0]?.senderName);
                 for (const item of list) available.push({ jid, item, name: display.name });
             }
@@ -71,6 +72,7 @@ module.exports = {
         if (!query && downloadMode && selectionIndex === null) {
             const available = [];
             for (const [jid, list] of entries) {
+                if (!Array.isArray(list)) continue;
                 const display = await resolveDisplayName(sock, jid, botState, list[0]?.senderName);
                 for (const item of list) available.push({ item, name: display.name });
             }

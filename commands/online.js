@@ -12,7 +12,7 @@ const MIN_INTERVAL = 60 * 1000; // 60 secondes
 module.exports = {
     name: 'online',
     aliases: ['enligne', 'actifs'],
-    description: 'Sonde UN SEUL contact pour voir s\'il est en ligne',
+    description: 'Vérifie si un contact est joignable',
     async execute(sock, msg, botState, ctx) {
         const myJid = `${String(botState.PHONE_NUMBER).replace(/\D/g, '')}@s.whatsapp.net`;
 
@@ -84,37 +84,14 @@ module.exports = {
         // ==========================================
         // RÉSULTAT
         // ==========================================
-        let state = result.source === 'timeout' ? '⚪ Aucune présence reçue' : '⚫ Hors ligne ou présence masquée';
-        let rtt = '—';
-        let calibration = '';
-
-        if (result.online) {
-            rtt = result.source === 'cache' ? 'présence déjà connue' : `${result.rtt} ms`;
-            if (result.source === 'presence') {
-                if (result.status === 'available') state = '🟢 En ligne — activité non déterminée';
-                else if (result.status === 'composing') state = '🟢 Active — écrit actuellement';
-                else if (result.status === 'recording') state = '🟢 Active — enregistre actuellement';
-                else if (result.status === 'paused') state = '🟡 A cessé d’écrire';
-                else if (result.status === 'unavailable') state = '⚫ Hors ligne ou application en arrière-plan';
-                else state = '🟡 Présence reçue : ' + result.status;
-            } else if (result.source === 'receipt' || result.source === 'delivery-ack' || result.source === 'raw-receipt') {
-                // Un accusé prouve que l’appareil est joignable, pas qu’il est
-                // actuellement affiché au premier plan.
-                state = '🟡 Joignable — activité non confirmée';
-                calibration = `\n📊 Médiane : ${result.median} ms` +
-                    (result.threshold == null ? '' : `\n📏 Seuil adaptatif : ${result.threshold} ms`);
-            }
-            else if (result.source === 'cache') state = '🟡 Présence connue récemment';
-        }
+        const state = result.online ? '🟢 Joignable' : '⚫ Hors ligne';
+        const rtt = result.rtt == null ? '—' : `${result.rtt} ms`;
 
         await sock.sendMessage(myJid, {
             text: `╭━━━〔 📡 PHOENIX PULSE 〕━━━╮\n` +
                   `┃ 👤 Contact : *${targetName}*\n` +
                   `┃ 📱 État : ${state}\n` +
-                  `┃ ⏱️ Réponse : ${rtt}${calibration}\n` +
-                  `┣━━━━━━━━━━━━━━━━━━━━━━┫\n` +
-                  `┃ 💡 Active = écrit/enregistre ; en ligne ≠ premier plan\n` +
-                  `┃ 🟡 Joignable = accusé réseau, pas activité confirmée\n` +
+                  `┃ ⏱️ RTT : ${rtt}\n` +
                   `╰━━━━━━━━━━━━━━━━━━━━━━╯`
         });
     }

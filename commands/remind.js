@@ -15,21 +15,23 @@ module.exports = {
         const durationStr = ctx.args[0].toLowerCase();
         const text = ctx.args.slice(1).join(' ');
 
-        const regex = /(\d+)([smh])/g;
+        const regex = /^(?=.{2,12}$)(?:\d+[smh])+$/;
         let match;
         let totalMs = 0;
         let matched = false;
 
-        while ((match = regex.exec(durationStr)) !== null) {
-            matched = true;
-            const value = parseInt(match[1]);
+        const parts = durationStr.match(/(\d+)([smh])/g) || [];
+        for (const part of parts) {
+            match = part.match(/(\d+)([smh])/);
+            const value = Number.parseInt(match[1], 10);
             const unit = match[2];
+            matched = true;
             if (unit === 's') totalMs += value * 1000;
             else if (unit === 'm') totalMs += value * 60 * 1000;
             else if (unit === 'h') totalMs += value * 60 * 60 * 1000;
         }
 
-        if (!matched || totalMs === 0 || totalMs > 24 * 60 * 60 * 1000) {
+        if (!regex.test(durationStr) || !matched || totalMs === 0 || totalMs > 24 * 60 * 60 * 1000) {
             await sock.sendMessage(myJid, { text: '⚠️ Durée invalide. Utilise `s`, `m` ou `h` — maximum 24 h.' });
             return;
         }

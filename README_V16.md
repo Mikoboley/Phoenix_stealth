@@ -1,6 +1,8 @@
-# Phoenix Stealth v19
+# Phoenix Stealth v20
 
 Phoenix Stealth est un assistant WhatsApp Baileys orienté **présence, récupération et organisation**, avec une présentation discrète et lisible. Il fonctionne avec Node.js 18 ou supérieur et conserve ses données locales dans `Phoenix_Media/` afin de rester portable d’une plateforme à l’autre.
+
+La page web racine (`/`) fournit un accueil visuel sobre pour une présentation client, tandis que `/healthz` expose un état technique minimal destiné à la supervision.
 
 ## Installation et démarrage
 
@@ -37,7 +39,7 @@ Si un numéro n’existe réellement pas dans le carnet WhatsApp, Phoenix peut a
 | `!statut download` | Liste tous les statuts disponibles avec un numéro. |
 | `!statut download <nom>` | Liste les statuts disponibles d’un contact. |
 | `!statut download <nom> <index>` | Télécharge un statut précis ; `-1` désigne le dernier, comme en Python. |
-| `!online <nom>` | Interroge la présence avec distinction entre présence confirmée et joignabilité RTT. |
+| `!online <nom>` | Affiche `🟢 Joignable` ou `⚫ Hors ligne`, avec le RTT de la sonde ponctuelle. |
 | `!alertonline <nom> \| message` | Active une alerte personnalisée. Le marqueur `{name}` est remplacé par le nom du carnet. |
 | `!alertonline list` | Liste les alertes actives. |
 | `!alertonline off <nom>` | Désactive l’alerte du contact. |
@@ -57,7 +59,9 @@ Exemple :
 !alertonline Blue Bird | 🔔 {name} est disponible.
 ```
 
-La commande `!online` distingue maintenant plusieurs niveaux : `Active` lorsqu’un événement `composing` ou `recording` est reçu, `En ligne — activité non déterminée` pour `available`, `Hors ligne ou application en arrière-plan` pour `unavailable`, et `Joignable — activité non confirmée` lorsqu’un accusé RTT arrive sans présence. Cette distinction suit les états exposés par Baileys ; WhatsApp ne fournit pas un indicateur indépendant et garanti de l’application au premier plan. Les événements peuvent aussi être retardés ou absents selon la confidentialité et l’état de synchronisation. Une temporisation anti-doublon de cinq minutes évite les notifications répétées.
+La commande `!online` affiche volontairement seulement deux états : `🟢 Joignable` lorsqu’une présence ou une réponse d’appareil est reçue, et `⚫ Hors ligne` lorsqu’aucun signal n’arrive dans le délai prévu. Elle affiche aussi le RTT de cette sonde ponctuelle, sans conserver ni comparer les RTT précédents. Cela ne prétend pas mesurer l’activité de la personne ni le premier plan ; c’est uniquement un résultat de joignabilité instantané. Une temporisation anti-doublon évite les sondes répétées.
+
+Phoenix ne conserve pas d’historique RTT et ne cherche pas à suivre les habitudes d’un contact. Une sonde ponctuelle peut seulement indiquer qu’un appareil est joignable ; elle ne permet pas d’affirmer que la personne est en ligne ou que WhatsApp est au premier plan.
 
 ## Statuts déjà consultés
 
@@ -85,6 +89,11 @@ Les fichiers d’authentification et le dossier `Phoenix_Media/` sont sensibles 
 - **Session persistante** : `auth_info/` est réutilisé automatiquement ; le code n’est demandé qu’après une première association, une déconnexion réelle ou la perte du volume de session.
 - **Terminal discret** : les logs de chargement, de suppression fantôme, de présence et de synchronisation sont masqués par défaut. `PHOENIX_VERBOSE=true` réactive le diagnostic développeur.
 - **`!health`** : état privé du noyau, uptime, caches, contacts, présences et alertes, sans chemin local ni secret.
+- **Accueil client** : page web responsive et lisible, avec état opérationnel et version, sans donnée sensible.
+- **Nettoyage complet** : les fichiers média associés aux statuts expirés sont supprimés avec leur entrée de cache après 24 heures.
+- **Rappels robustes** : les formats incomplets ou invalides comme `10mfoo` sont refusés au lieu d’être partiellement interprétés.
+- **Terminal portable** : bannière de démarrage et événements de connexion, pairing, synchronisation et reconnexion affichés de façon compacte, quel que soit l’hébergement (Termux, VPS, Docker ou serveur Node.js).
+- **`!online` minimal** : deux états visuels uniquement — `🟢 Joignable` et `⚫ Hors ligne` — sans historique comportemental.
 
 ## Propositions d’évolution
 

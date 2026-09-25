@@ -13,7 +13,8 @@ module.exports = {
     async execute(sock, msg, botState) {
         const { commands } = require('../core/commands');
         const myJid = `${String(botState.PHONE_NUMBER).replace(/\D/g, '')}@s.whatsapp.net`;
-        const statusCount = Object.values(botState.statusCache || {}).reduce((sum, list) => sum + list.length, 0);
+        const statusCount = Object.values(botState.statusCache || {})
+            .reduce((sum, list) => sum + (Array.isArray(list) ? list.length : 0), 0);
         const onlineCount = botState.onlineUsers instanceof Map ? botState.onlineUsers.size : Object.keys(botState.onlineUsers || {}).length;
         const alertCount = Object.values(botState.onlineAlerts || {}).filter((alert) => alert.enabled !== false).length;
         const text = `╭━━━〔 🩺 PHOENIX HEALTH 〕━━━╮

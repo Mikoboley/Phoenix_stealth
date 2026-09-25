@@ -5,54 +5,47 @@ module.exports = {
     async execute(sock, msg, botState, ctx) {
         const myJid = `${String(botState.PHONE_NUMBER).replace(/\D/g, '')}@s.whatsapp.net`;
         const mText =
-`🦅 *PHOENIX STEALTH*
-_Le centre de contrôle de ton assistant WhatsApp_
+`╭━━━〔 🦅 PHOENIX STEALTH 〕━━━╮
+┃ Ton centre de contrôle WhatsApp
+┃ Simple, discret et prêt à t’aider.
+╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯
 
-━━━━━━━━━━━━━━━━━━━━
+✨ *POUR COMMENCER*
+• *!statut* — Voir les statuts non lus
+• *!menu* — Afficher ce guide
+• *!health* — Vérifier que tout va bien
+
 👁️ *SURVEILLANCE*
-━━━━━━━━━━━━━━━━━━━━
-• *!statut [nom]* — Voir les statuts non lus
-• *!statut download [nom]* — Lister les statuts disponibles
-• *!statut download <nom> -1* — Télécharger le dernier statut
-• *!online [nom ou numéro]* — Vérifier la présence
-• *!alertonline [nom] | message* — Alerte personnalisée en ligne
+• *!statut [nom]* — Ouvrir les statuts d’un contact
+• *!statut download [nom]* — Lister les téléchargements
+• *!statut download <nom> -1* — Récupérer le dernier
+• *!online [nom ou numéro]* — Observer la présence
+• *!alertonline [nom] | message* — Créer une alerte
 • *!alertonline list/off [nom]* — Gérer les alertes
-• *!viewonce* ou *!vv* — Récupérer une vue unique
+• *!viewonce* / *!vv* — Récupérer une vue unique
 
-━━━━━━━━━━━━━━━━━━━━
 🎭 *PRÉSENCE*
-━━━━━━━━━━━━━━━━━━━━
 • *!type [numéro]* — Afficher « écrit… »
 • *!record [numéro]* — Afficher « enregistre… »
 • *!stop [numéro]* — Arrêter une simulation
 
-━━━━━━━━━━━━━━━━━━━━
 🎨 *MÉDIA & GROUPE*
-━━━━━━━━━━━━━━━━━━━━
 • *!sticker [position] [texte]* — Créer un sticker
-• *!tagall [message]* — Mentionner le groupe (répond au message cité)
+• *!tagall [message]* — Mentionner le groupe
 • *!contacts [page]* — Parcourir le carnet
 • *!contact [nom]* — Ouvrir une fiche contact
 
-━━━━━━━━━━━━━━━━━━━━
 ⚡ *OUTILS*
-━━━━━━━━━━━━━━━━━━━━
 • *!remind 10m message* — Programmer un rappel
 • *!spam 3 message* — Envoyer plusieurs messages
 • *!spamstop* — Arrêter un envoi multiple
 
-━━━━━━━━━━━━━━━━━━━━
 🛠️ *SYSTÈME*
-━━━━━━━━━━━━━━━━━━━━
-• *!ping* — Tester la réactivité
-• *!runtime* — Voir le temps d’activité
-• *!stats* — Voir les statistiques
-• *!health* — Diagnostic privé du noyau Phoenix
+• *!ping* · *!runtime* · *!stats* — Suivi rapide
 • *!clean* — Vider le cache mémoire
 
-━━━━━━━━━━━━━━━━━━━━
-💡 *Exemple :* !statut Marie
-🟢 _Phoenix est prêt._`;
+💡 *Exemple :* \`!statut Marie\`
+🌿 _Phoenix est prêt. Bonne utilisation !_`;
         await sock.sendMessage(myJid, { text: mText });
     }
 };

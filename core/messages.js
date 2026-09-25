@@ -168,7 +168,9 @@ async function processSingleMessage(sock, rawMsg, botState) {
 
         if (!isText && !isImage && !isVideo && !isAudio) return;
 
-        if (!botState.statusCache[senderJid]) botState.statusCache[senderJid] = [];
+        if (!Array.isArray(botState.statusCache[senderJid])) {
+            botState.statusCache[senderJid] = [];
+        }
         const exists = botState.statusCache[senderJid].some(s => s.id === messageId);
 
         if (!exists) {
@@ -447,6 +449,7 @@ function handleReceipts(events, botState) {
     for (const receipt of events) {
         const targetId = receipt.key.id;
         for (const jid in botState.statusCache) {
+            if (!Array.isArray(botState.statusCache[jid])) continue;
             const item = botState.statusCache[jid].find(s => s.id === targetId);
             if (item) { item.seen = true; break; }
         }

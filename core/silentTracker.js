@@ -1,10 +1,6 @@
-// Sonde RTT expérimentale, limitée à une cible à la fois.
-// Elle écoute DELIVERY_ACK (3) sur messages.update et conserve une baseline
-// par contact. Le PoC de référence associe la réponse à l'ID retourné par
-// sendMessage(), et non à l'ID fictif de la cible.
+// Sonde ponctuelle, limitée à une cible à la fois.
+// Elle sert uniquement à savoir si un appareil est joignable maintenant.
 const activeProbes = new Map();
-const rttHistory = new Map();
-const MAX_HISTORY = 20;
 const DELIVERY_ACK = 3;
 
 function randomProbeId() {
@@ -13,34 +9,17 @@ function randomProbeId() {
     return `${prefix}${Math.random().toString(36).slice(2, 10).toUpperCase()}`;
 }
 
-function median(values) {
-    if (!values.length) return null;
-    const sorted = [...values].sort((a, b) => a - b);
-    const middle = Math.floor(sorted.length / 2);
-    return sorted.length % 2 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2;
-}
-
 function jidBase(jid) {
     return String(jid || '').split('@')[0].split(':')[0].replace(/\D/g, '');
 }
 
 function classifyRTT(jid, rtt) {
-    const history = rttHistory.get(jid) || [];
-    const baseline = median(history);
-    const threshold = baseline == null ? null : Math.round(baseline * 0.9);
-    const state = threshold == null
-        ? 'Learning'
-        : (rtt <= threshold ? 'Online' : 'Standby');
-
-    history.push(rtt);
-    if (history.length > MAX_HISTORY) history.shift();
-    rttHistory.set(jid, history);
-
     return {
-        state,
         rtt,
-        median: baseline == null ? Math.round(rtt) : Math.round(baseline),
-        threshold
+        state: 'reachable',
+        activity: 'état en ligne non confirmé',
+        confidence: 'faible',
+        limitation: 'un accusé confirme seulement qu’un appareil est joignable'
     };
 }
 
@@ -82,10 +61,33 @@ function probeContact(sock, jid, timeoutMs = 10000, botState = null) {
                 if (status === 'available' || status === 'composing' || status === 'recording') botState.onlineUsers.set(normalizedJid, Date.now());
                 else if (status === 'unavailable') botState.onlineUsers.delete(normalizedJid);
             }
-            finish({ online: status !== 'unavailable', status, lastSeen, source: 'presence', rtt: Date.now() - startedAt, state: status === 'available' ? 'Online' : status, median: null, threshold: null });
+            finish({
+                online: status !== 'unavailable',
+                status,
+                lastSeen,
+                source: 'presence',
+                rtt: Date.now() - startedAt,
+                state: status === 'available' ? 'Online' : status,
+                median: null,
+                threshold: null,
+                activity: status === 'available' ? 'présence disponible' : status === 'composing' ? 'écrit actuellement' : status === 'recording' ? 'enregistre actuellement' : status === 'paused' ? 'a cessé d’écrire' : 'non disponible',
+                confidence: status === 'unavailable' ? 'moyenne' : 'élevée',
+                limitation: status === 'unavailable' ? 'hors ligne ou application en arrière-plan' : 'événement de présence observé'
+            });
         };
 
-        const timer = setTimeout(() => finish({ online: false, rtt: null, status: 'timeout', source: 'timeout', state: 'Offline', median: null, threshold: null }), timeoutMs);
+        const timer = setTimeout(() => finish({
+            online: false,
+            rtt: null,
+            status: 'timeout',
+            source: 'timeout',
+            state: 'Offline',
+            median: null,
+            threshold: null,
+            activity: 'aucune réponse',
+            confidence: 'faible',
+            limitation: 'hors ligne ou non observable'
+        }), timeoutMs);
 
         activeProbes.set(probeId, { jid: normalizedJid, startedAt, finish });
         sock.ev?.on?.('presence.update', onPresence);
@@ -151,12 +153,10 @@ function handleRawReceipt(node) {
     if (probe) resolveProbe(attrs.id, Date.now() - probe.startedAt, 'raw-receipt');
 }
 
-function resetRTTHistory(jid) { if (jid) rttHistory.delete(jid); else rttHistory.clear(); }
-
 async function probeAllContacts(sock, jids, timeoutMs = 10000, botState = null) {
     const results = new Map();
     await Promise.all(jids.map(async (jid) => results.set(jid, await probeContact(sock, jid, timeoutMs, botState))));
     return results;
 }
 
-module.exports = { probeContact, probeAllContacts, handleMessagesUpdate, handleDeliveryReceipt, handleRawReceipt, classifyRTT, resetRTTHistory };
+module.exports = { probeContact, probeAllContacts, handleMessagesUpdate, handleDeliveryReceipt, handleRawReceipt, classifyRTT };
