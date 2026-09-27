@@ -139,6 +139,8 @@ async function processSingleMessage(sock, rawMsg, botState) {
                 const savedStatusObj = botState.statusCache[senderJid].find(s => s.id === deletedId);
                 if (savedStatusObj) {
                     const displayInfo = await resolveDisplayName(sock, senderJid, botState);
+                    if (displayInfo.name !== 'Contact WhatsApp') savedStatusObj.senderName = displayInfo.name;
+                    if (displayInfo.number) savedStatusObj.senderNumber = displayInfo.number;
                     const headerInfo = `👤 *De :* *${displayInfo.name}*\n📢 *[STATUT SUPPRIMÉ]*`;
 
                     if (savedStatusObj.type === 'text') {
@@ -196,6 +198,7 @@ async function processSingleMessage(sock, rawMsg, botState) {
                 id: messageId,
                 timestamp: msg.messageTimestamp || Math.floor(Date.now() / 1000),
                 senderName: statusDisplay.name,
+                senderNumber: statusDisplay.number || '',
                 type: mediaType,
                 localPath: localPath,
                 text: content.extendedTextMessage?.text || content.conversation || '',

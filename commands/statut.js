@@ -34,6 +34,14 @@ function selectByPythonIndex(items, index) {
     return position >= 0 && position < items.length ? items[position] : null;
 }
 
+function enrichStatusIdentity(list, display) {
+    if (!Array.isArray(list)) return;
+    for (const item of list) {
+        if (display.name && display.name !== 'Contact WhatsApp') item.senderName = display.name;
+        if (display.number) item.senderNumber = display.number;
+    }
+}
+
 module.exports = {
     name: 'statut',
     aliases: ['status'],
@@ -58,6 +66,7 @@ module.exports = {
             for (const [jid, list] of entries) {
                 if (!Array.isArray(list)) continue;
                 const display = await resolveDisplayName(sock, jid, botState, list[0]?.senderName);
+                enrichStatusIdentity(list, display);
                 for (const item of list) available.push({ jid, item, name: display.name });
             }
             const chosen = selectByPythonIndex(available, selectionIndex);
@@ -74,6 +83,7 @@ module.exports = {
             for (const [jid, list] of entries) {
                 if (!Array.isArray(list)) continue;
                 const display = await resolveDisplayName(sock, jid, botState, list[0]?.senderName);
+                enrichStatusIdentity(list, display);
                 for (const item of list) available.push({ item, name: display.name });
             }
             if (!available.length) {
@@ -93,6 +103,7 @@ module.exports = {
             for (const [jid, statuses] of unseenAuthors) {
                 const count = statuses.filter((status) => !status.seen).length;
                 const display = await resolveDisplayName(sock, jid, botState, statuses[0]?.senderName);
+                enrichStatusIdentity(statuses, display);
                 text += `┃ 👤 *${display.name}* — ${count} statut(s)\n`;
             }
             text += '\n╰━━━━━━━━━━━━━━━━━━━━━━━━╯\n💡 Tape `!statut <nom>` pour ouvrir un contact.';
@@ -102,10 +113,17 @@ module.exports = {
 
         for (const [jid, list] of entries) {
             if (targetJid) break;
+            if (!Array.isArray(list)) continue;
             const display = await resolveDisplayName(sock, jid, botState, list[0]?.senderName);
-            const number = jid.split('@')[0].toLowerCase();
+            enrichStatusIdentity(list, display);
+            const numbers = [
+                jid.split('@')[0],
+                display.number || '',
+                ...list.map((item) => item.senderNumber || '')
+            ].join(' ');
+            const number = query.replace(/\D/g, '');
             const name = display.name.toLowerCase();
-            if (number.includes(query) || name.includes(query)) {
+            if ((number && numbers.includes(number)) || name.includes(query)) {
                 targetJid = jid;
                 statuses = list;
                 targetName = display.name;
