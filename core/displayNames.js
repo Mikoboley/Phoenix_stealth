@@ -55,9 +55,9 @@ function saveResolvedName(jid, name, botState) {
 }
 
 function contactNameFromObject(contact) {
-    // Baileys: `name` = nom du carnet. `notify` est un nom de profil et ne
-    // doit jamais être persisté comme nom du carnet.
-    return clean(contact?.name);
+    // Baileys expose parfois uniquement `notify` ou `verifiedName`,
+    // notamment après une nouvelle association ou une synchronisation partielle.
+    return clean(contact?.name) || clean(contact?.notify) || clean(contact?.verifiedName);
 }
 
 function rememberContact(contact, botState) {

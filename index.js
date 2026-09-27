@@ -196,7 +196,7 @@ function scheduleSaveContacts() {
 }
 
 function getWhatsAppContactName(contact) {
-    const savedName = String(contact?.name || '').trim();
+    const savedName = String(contact?.name || contact?.notify || contact?.verifiedName || '').trim();
     if (savedName && savedName !== '.') return savedName;
     return '';
 }
@@ -212,8 +212,8 @@ function syncWhatsAppContacts(contacts, sock) {
         // apparaître comme des contacts séparés dans le carnet.
         if (isNonPersonJid(jid) || jid.endsWith('@lid')) continue;
         if (name && !jid.endsWith('@g.us')) {
-            // `name` est le nom enregistré dans le carnet WhatsApp.
-            // `notify` est seulement le nom de profil et sert de repli.
+            // `name` est le nom du carnet ; `notify` et `verifiedName`
+            // complètent les synchronisations où le carnet est partiel.
             if (name && botState.contactNames[jid] !== name) {
                 botState.contactNames[jid] = name;
                 setContactName(jid, name);
